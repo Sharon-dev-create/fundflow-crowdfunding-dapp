@@ -1,7 +1,7 @@
-import { TreasuryCard } from "@/components/TreasuryCard";
-import { ProtocolStats } from "@/components/ProtocolStats";
-import { StakeForm } from "@/components/StakeForm";
-import { StakeList } from "@/components/StakeList";
+import { TreasuryCard } from "../components/TreasuryCard";
+import { ProtocolStats } from "../components/ProtocolStats";
+import { StakeForm } from "../components/StakeForm";
+import { StakeList } from "../components/StakeList";
 
 export default function Home() {
   return (
