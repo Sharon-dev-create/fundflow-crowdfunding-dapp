@@ -35,5 +35,8 @@
     "ts-node": "^10.9.2",
     "typescript": "~5.0.4",
     "viem": "^2.52.2"
+  },
+  "dependencies": {
+    "framer-motion": "^12.40.0"
   }
 }

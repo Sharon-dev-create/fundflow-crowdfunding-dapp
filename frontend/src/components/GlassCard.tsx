@@ -11,7 +11,7 @@ interface GlassCardProps extends HTMLMotionProps<"div"> {
 
 export function GlassCard({ children, className = "", hover = false, level = 1, glow, style, ...props }: GlassCardProps) {
   const base = level === 2
-    ? { background: "rgba(23,31,51,0.88)", backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)", border: "1px solid rgba(255,255,255,0.12)" }
+    ? { background: "rgba(33, 75, 181, 0.88)", backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)", border: "1px solid rgba(255,255,255,0.12)" }
     : { background: "rgba(15,23,42,0.7)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.08)" };
 
   return (
