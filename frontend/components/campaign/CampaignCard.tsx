@@ -8,7 +8,7 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 import { StatusPill } from "@/components/ui/StatusPill";
 
 export function CampaignCard({ campaign, index = 0 }: { campaign: CampaignWithId; index?: number }) {
-  const pct = formatPercent(campaign.raisedAmount, campaign.goal);
+  const pct = formatPercent(campaign.raised, campaign.goal);
   const days = daysRemaining(campaign.deadline);
 
   return (
@@ -48,7 +48,7 @@ export function CampaignCard({ campaign, index = 0 }: { campaign: CampaignWithId
             {/* Progress */}
             <div>
               <div className="flex justify-between items-baseline mb-2">
-                <span style={{ color: "#4edea3", fontWeight: 600, fontSize: 20, fontFamily: "JetBrains Mono, monospace" }}>{formatEth(campaign.raisedAmount)} <span style={{ fontSize: 13, color: "#c7c4d7", fontWeight: 400 }}>ETH</span></span>
+                <span style={{ color: "#4edea3", fontWeight: 600, fontSize: 20, fontFamily: "JetBrains Mono, monospace" }}>{formatEth(campaign.raised)} <span style={{ fontSize: 13, color: "#c7c4d7", fontWeight: 400 }}>ETH</span></span>
                 <span style={{ color: "#c7c4d7", fontSize: 12 }}>{pct}%</span>
               </div>
               <ProgressBar percent={pct} />
@@ -75,4 +75,4 @@ export function CampaignCard({ campaign, index = 0 }: { campaign: CampaignWithId
       </Link>
     </motion.div>
   );
-}
+} 

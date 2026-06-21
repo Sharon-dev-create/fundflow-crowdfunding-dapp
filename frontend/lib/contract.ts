@@ -1,190 +1,253 @@
-import { createPublicClient, createWalletClient, http, custom } from "viem";
-import { sepolia } from "wagmi/chains";
+import {
+  createPublicClient,
+  createWalletClient,
+  custom,
+  http,
+} from "viem";
+import { sepolia } from "viem/chains";
 
-
+/* =====================================================
+   CONTRACT CONFIG
+===================================================== */
 
 export const CONTRACT_ADDRESS =
-  "0xYourDeployedFundFlowContractAddressHere";
+  "0xYOUR_DEPLOYED_CONTRACT_ADDRESS" as const;
 
-/* -------------------------------------------------------
-   ABI (FundFlow Crowdfunding Contract)
--------------------------------------------------------- */
+/* =====================================================
+   ABI
+   Replace with your exact ABI
+===================================================== */
 
 export const fundFlowAbi = [
-  {
-    type: "function",
-    name: "createCampaign",
-    stateMutability: "nonpayable",
-    inputs: [
-      { name: "goal", type: "uint256" },
-      { name: "duration", type: "uint256" }
-    ],
-    outputs: []
-  },
-  {
-    type: "function",
-    name: "contribute",
-    stateMutability: "payable",
-    inputs: [{ name: "id", type: "uint256" }],
-    outputs: []
-  },
-  {
-    type: "function",
-    name: "withdraw",
-    stateMutability: "nonpayable",
-    inputs: [{ name: "id", type: "uint256" }],
-    outputs: []
-  },
-  {
-    type: "function",
-    name: "getCampaign",
-    stateMutability: "view",
-    inputs: [{ name: "id", type: "uint256" }],
-    outputs: [
-      { name: "creator", type: "address" },
-      { name: "goal", type: "uint256" },
-      { name: "raised", type: "uint256" },
-      { name: "deadline", type: "uint256" },
-      { name: "claimed", type: "bool" },
-      { name: "status", type: "uint8" }
-    ]
-  },
-  {
-    type: "function",
-    name: "getCampaignCount",
-    stateMutability: "view",
-    inputs: [],
-    outputs: [{ type: "uint256" }]
-  }
+  // paste ABI here
 ] as const;
 
-/* -------------------------------------------------------
+/* =====================================================
    CLIENTS
--------------------------------------------------------- */
-export type CampaignWithId = {
-  id: bigint;
-
-  creator: string;
-  goal: bigint;
-  raised: bigint;
-  deadline: bigint;
-  claimed: boolean;
-  status: number;
-};
+===================================================== */
 
 export const publicClient = createPublicClient({
   chain: sepolia,
-  transport: http()
+  transport: http(),
 });
 
-function getWalletClient() {
+export function getWalletClient() {
   if (typeof window === "undefined") return null;
 
   return createWalletClient({
     chain: sepolia,
-    transport: custom((window as any).ethereum)
+    transport: custom(window.ethereum),
   });
 }
 
-/* -------------------------------------------------------
-   READ FUNCTIONS
--------------------------------------------------------- */
+/* =====================================================
+   TYPES
+===================================================== */
 
-export async function getCampaign(id: bigint) {
-  return publicClient.readContract({
-    address: CONTRACT_ADDRESS,
-    abi: fundFlowAbi,
-    functionName: "getCampaign",
-    args: [id]
-  });
-}
-
-export async function getCampaignCount() {
-  return publicClient.readContract({
-    address: CONTRACT_ADDRESS,
-    abi: fundFlowAbi,
-    functionName: "getCampaignCount",
-    args: [id],
-  });
-
-   return formatCampaign(id, raw);
-}
-
-/* -------------------------------------------------------
-   WRITE FUNCTIONS
--------------------------------------------------------- */
-
-export async function createCampaign(goal: bigint, duration: bigint) {
-  const wallet = getWalletClient();
-  if (!wallet) throw new Error("Wallet not connected");
-
-  const [account] = await wallet.getAddresses();
-
-  return wallet.writeContract({
-    account,
-    address: CONTRACT_ADDRESS,
-    abi: fundFlowAbi,
-    functionName: "createCampaign",
-    args: [goal, duration]
-  });
-}
-
-export async function contribute(id: bigint, value: bigint) {
-  const wallet = getWalletClient();
-  if (!wallet) throw new Error("Wallet not connected");
-
-  const [account] = await wallet.getAddresses();
-
-  return wallet.writeContract({
-    account,
-    address: CONTRACT_ADDRESS,
-    abi: fundFlowAbi,
-    functionName: "contribute",
-    args: [id],
-    value
-  });
-}
-
-export async function withdraw(id: bigint) {
-  const wallet = getWalletClient();
-  if (!wallet) throw new Error("Wallet not connected");
-
-  const [account] = await wallet.getAddresses();
-
-  return wallet.writeContract({
-    account,
-    address: CONTRACT_ADDRESS,
-    abi: fundFlowAbi,
-    functionName: "withdraw",
-    args: [id]
-  });
-}
-
-/* -------------------------------------------------------
-   OPTIONAL HELPERS (UI FRIENDLY)
--------------------------------------------------------- */
-
+/**
+ * Raw campaign returned directly from contract.
+ */
 export type Campaign = {
   creator: string;
+  title: string;
+  description: string;
   goal: bigint;
   raised: bigint;
   deadline: bigint;
+  contributorCount: bigint;
   claimed: boolean;
   status: number;
 };
 
-export function formatCampaign(
+/**
+ * Campaign with ID attached.
+ *
+ * This is the type used by CampaignCard.tsx
+ */
+export type CampaignWithId = Campaign & {
+  id: bigint;
+};
+
+/* =====================================================
+   MAPPERS
+===================================================== */
+
+/**
+ * Converts contract tuple into strongly typed object.
+ *
+ * Adjust indexes to match your contract.
+ */
+export function mapCampaign(
   id: bigint,
-  raw: readonly [string, bigint, bigint, bigint, boolean, number]
+  raw: readonly [
+    string,
+    string,
+    string,
+    bigint,
+    bigint,
+    bigint,
+    bigint,
+    boolean,
+    number
+  ]
 ): CampaignWithId {
   return {
     id,
 
     creator: raw[0],
-    goal: raw[1],
-    raised: raw[2],
-    deadline: raw[3],
-    claimed: raw[4],
-    status: raw[5],
+    title: raw[1],
+    description: raw[2],
+
+    goal: raw[3],
+    raised: raw[4],
+
+    deadline: raw[5],
+
+    contributorCount: raw[6],
+
+    claimed: raw[7],
+
+    status: raw[8],
   };
+}
+
+/* =====================================================
+   READ FUNCTIONS
+===================================================== */
+
+export async function getCampaign(
+  id: bigint
+): Promise<CampaignWithId> {
+  const raw = await publicClient.readContract({
+    address: CONTRACT_ADDRESS,
+    abi: fundFlowAbi,
+    functionName: "getCampaign",
+    args: [id],
+  });
+
+  return mapCampaign(id, raw as any);
+}
+
+export async function getCampaignCount(): Promise<bigint> {
+  return await publicClient.readContract({
+    address: CONTRACT_ADDRESS,
+    abi: fundFlowAbi,
+    functionName: "campaignCount",
+  });
+}
+
+export async function getAllCampaigns(): Promise<CampaignWithId[]> {
+  const count = await getCampaignCount();
+
+  const campaigns = await Promise.all(
+    Array.from({ length: Number(count) }, (_, i) =>
+      getCampaign(BigInt(i + 1))
+    )
+  );
+
+  return campaigns;
+}
+
+/* =====================================================
+   WRITE FUNCTIONS
+===================================================== */
+
+export async function createCampaign(
+  title: string,
+  description: string,
+  goal: bigint,
+  deadline: bigint
+) {
+  const walletClient = getWalletClient();
+
+  if (!walletClient) {
+    throw new Error("Wallet not available");
+  }
+
+  const [account] = await walletClient.getAddresses();
+
+  return walletClient.writeContract({
+    address: CONTRACT_ADDRESS,
+    abi: fundFlowAbi,
+    functionName: "createCampaign",
+    account,
+    args: [
+      title,
+      description,
+      goal,
+      deadline,
+    ],
+  });
+}
+
+export async function contribute(
+  campaignId: bigint,
+  amount: bigint
+) {
+  const walletClient = getWalletClient();
+
+  if (!walletClient) {
+    throw new Error("Wallet not available");
+  }
+
+  const [account] = await walletClient.getAddresses();
+
+  return walletClient.writeContract({
+    address: CONTRACT_ADDRESS,
+    abi: fundFlowAbi,
+    functionName: "contribute",
+    account,
+    args: [campaignId],
+    value: amount,
+  });
+}
+
+export async function claimFunds(
+  campaignId: bigint
+) {
+  const walletClient = getWalletClient();
+
+  if (!walletClient) {
+    throw new Error("Wallet not available");
+  }
+
+  const [account] = await walletClient.getAddresses();
+
+  return walletClient.writeContract({
+    address: CONTRACT_ADDRESS,
+    abi: fundFlowAbi,
+    functionName: "claimFunds",
+    account,
+    args: [campaignId],
+  });
+}
+
+/* =====================================================
+   HELPERS
+===================================================== */
+
+export function isCampaignActive(
+  campaign: CampaignWithId
+): boolean {
+  return campaign.status === 0;
+}
+
+export function progressPercent(
+  campaign: CampaignWithId
+): number {
+  if (campaign.goal === 0n) return 0;
+
+  return Math.min(
+    100,
+    Number((campaign.raised * 100n) / campaign.goal)
+  );
+}
+
+export function hasEnded(
+  campaign: CampaignWithId
+): boolean {
+  return (
+    Number(campaign.deadline) <
+    Math.floor(Date.now() / 1000)
+  );
 }
