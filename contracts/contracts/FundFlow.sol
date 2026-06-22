@@ -65,3 +65,41 @@ mapping(uint256 => mapping(address => bool)) public hasRefunded;
 mapping(uint256 => mapping(address => bool)) public hasVoted;
 mapping(uint256 => address[]) private campaignContributors;
 mapping(uint256 => mapping(address => bool)) public isContributor;
+
+// Events
+event CampaignCreated(uint256 indexed campaignId, address indexed creator, string title, uint256 goal,
+ uint256 deadline, uint256 milestoneCount);
+ event ContributionMade(uint256 indexed campaignId, address indexed contributor, 
+ uint256 amount, uint256 totalRaised, uint256 badgeTokenId);
+
+event MilestoneRequested(uint256 indexed campaignId, uint256 indexed milestoneIndex,
+string title, uint256 amount, uint256 votingDeadline);
+event VoteCast(uint256 indexed campaignId, uint256 indexed milestoneIndex, address indexed voter,
+uint256 approvalVotes, VoteOptions vote);
+
+ event MilestoneApproved(
+        uint256 indexed campaignId,
+        uint256 indexed milestoneIndex,
+        string          title,
+        uint256         amount
+    );
+    event MilestoneRejected(
+        uint256 indexed campaignId,
+        uint256 indexed milestoneIndex,
+        string          title
+    );
+    event FundsReleased(
+        uint256 indexed campaignId,
+        address indexed creator,
+        uint256         amount
+    );
+    event RefundClaimed(
+        uint256 indexed campaignId,
+        address indexed contributor,
+        uint256         amount
+    );
+    event CampaignCompleted(uint256 indexed campaignId);
+    event CampaignStatusUpdated(uint256 indexed campaignId, CampaignStatus status);
+    event BackerBadgeContractSet(address indexed badgeContract);
+    event PlatformFeesWithdrawn(address indexed to, uint256 amount);
+
