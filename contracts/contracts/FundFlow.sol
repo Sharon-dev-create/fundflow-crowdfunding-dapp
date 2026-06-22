@@ -59,6 +59,9 @@ uint256 public totalPlatFormfees;
 address public backerBadgeContract;
 
 mapping(uint256 => Campaign) public campaigns;
-mapping(uint256 => MileStone[]) public campaignMilestones;
+mapping(uint256 => Milestone[]) public campaignMilestones;
 mapping(uint256 => mapping(address => uint256)) public campaignContributions;
 mapping(uint256 => mapping(address => bool)) public hasRefunded;
+mapping(uint256 => mapping(address => bool)) public hasVoted;
+mapping(uint256 => address[]) private campaignContributors;
+mapping(uint256 => mapping(address => bool)) public isContributor;
