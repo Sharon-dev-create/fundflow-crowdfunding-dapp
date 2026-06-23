@@ -299,8 +299,8 @@ import { sepolia } from "viem/chains";
    CONTRACT CONFIG
 ===================================================== */
 
-export const CONTRACT_ADDRESS =
-  "0xYOUR_DEPLOYED_CONTRACT_ADDRESS" as const;
+// export const CONTRACT_ADDRESS =
+//   "0xYOUR_DEPLOYED_CONTRACT_ADDRESS" as const;
 
 /* =====================================================
    ABI
@@ -315,10 +315,10 @@ export const fundFlowAbi = [
    CLIENTS
 ===================================================== */
 
-export const publicClient = createPublicClient({
-  chain: sepolia,
-  transport: http(),
-});
+// export const publicClient = createPublicClient({
+//   chain: sepolia,
+//   transport: http(),
+// });
 
 export function getWalletClient() {
   if (typeof window === "undefined") return null;
