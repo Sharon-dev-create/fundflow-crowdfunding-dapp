@@ -8,11 +8,10 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 import { StatusPill } from "@/components/ui/StatusPill";
 
 export function CampaignCard({ campaign, index = 0 }: { campaign: CampaignWithId; index?: number }) {
-<<<<<<< HEAD
+
   const pct = formatPercent(campaign.raisedAmount, campaign.goal);
-=======
-  const pct = formatPercent(campaign.raised, campaign.goal);
->>>>>>> 4840e64391d39b2f4b94ad5d0bd0db6837acdbb6
+  // const pct = formatPercent(campaign.raised, campaign.goal);
+// >>>>>>> 4840e64391d39b2f4b94ad5d0bd0db6837acdbb6
   const days = daysRemaining(campaign.deadline);
 
   return (
@@ -52,11 +51,10 @@ export function CampaignCard({ campaign, index = 0 }: { campaign: CampaignWithId
             {/* Progress */}
             <div>
               <div className="flex justify-between items-baseline mb-2">
-<<<<<<< HEAD
+
                 <span style={{ color: "#4edea3", fontWeight: 600, fontSize: 20, fontFamily: "JetBrains Mono, monospace" }}>{formatEth(campaign.raisedAmount)} <span style={{ fontSize: 13, color: "#c7c4d7", fontWeight: 400 }}>ETH</span></span>
-=======
                 <span style={{ color: "#4edea3", fontWeight: 600, fontSize: 20, fontFamily: "JetBrains Mono, monospace" }}>{formatEth(campaign.raised)} <span style={{ fontSize: 13, color: "#c7c4d7", fontWeight: 400 }}>ETH</span></span>
->>>>>>> 4840e64391d39b2f4b94ad5d0bd0db6837acdbb6
+{/* >>>>>>> 4840e64391d39b2f4b94ad5d0bd0db6837acdbb6 */}
                 <span style={{ color: "#c7c4d7", fontSize: 12 }}>{pct}%</span>
               </div>
               <ProgressBar percent={pct} />

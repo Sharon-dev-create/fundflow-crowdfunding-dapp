@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 import { Address } from "viem";
 import { createPublicClient, http } from "viem";
 import { sepolia } from "viem/chains";
@@ -528,7 +528,7 @@ export function progressPercent(
 
   return Math.min(
     100,
-    Number((campaign.raised * 100n) / campaign.goal)
+    Number((campaign.raisedAmount * 100n) / campaign.goal)
   );
 }
 
@@ -540,4 +540,4 @@ export function hasEnded(
     Math.floor(Date.now() / 1000)
   );
 }
->>>>>>> 4840e64391d39b2f4b94ad5d0bd0db6837acdbb6
+
