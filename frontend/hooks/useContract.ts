@@ -177,7 +177,7 @@ export function useCampaignStats() {
 
   return {
     totalCampaigns: count,
-    isLoading: loading,
+    loading: loading,
   };
 }
 

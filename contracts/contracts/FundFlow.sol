@@ -103,3 +103,52 @@ uint256 approvalVotes, VoteOptions vote);
     event BackerBadgeContractSet(address indexed badgeContract);
     event PlatformFeesWithdrawn(address indexed to, uint256 amount);
 
+    // Modifiers
+    modifier campaignExists(uint256 campaign) {
+        if (!campaigns[campaignId].exists) revert CampaignNotfound();
+        _;
+    }
+
+    modifier onlyCreator(uint256 campaignId) {
+        if(campains[campaignId].creator != msg.sender) revert NotCreator();
+        _;
+    }
+
+    modifier onlyContributor(uint256 campaign) {
+        if (!isContributor[campaignId][msg.sender]) revert NotContributor();
+        _;
+    }
+
+    // Constructor
+    constructor(address initialOwner, uint256 _platformFeePercent) Ownable(initialOwner){
+        platformFeePercent = _platformFeePercent;
+    }
+
+    // Admin Functions
+    function setBackerBadgeContract(address _badge) external onlyOwner{
+        backerBadgeContract = _backerBadgeContract;
+        emit BackerBadgeContract(_badge);
+    }
+
+    function pause() external onlyOwner{ _pause();}
+
+    function unpause() external onlyOwner{ _unpause();}
+
+    function withdrawPlatformFees(address to) external onlyOwner nonReentrant {
+        uint256 amount = totalPlatformFees;
+        totalPlatformFees = 0;
+        (bool ok,) = to.call{value: amount}("");
+        if (!ok) revert TransferFailed();
+        emit PlatformFeesWithdrawn(to, amount);
+    }
+
+    // Function to Campaign Create
+    function createCampaign( 
+        string calldata title,
+        string calldata description,
+        uint256 goal,
+        uint256 duration,
+        string[] calldata milestoneAmounts,
+        uint256[] calldata  milestoneAmounts
+    )
+

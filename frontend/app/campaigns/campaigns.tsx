@@ -53,7 +53,7 @@ export default function CampaignsPage() {
   const [search, setSearch] = useState("");
   const [focused, setFocused] = useState(false);
 
-  const { campaigns, isLoading } = useCampaign();
+  const { campaigns, loading } = useCampaign();
 
   const filtered = useMemo(() => {
     let list = [...campaigns];
@@ -189,7 +189,7 @@ export default function CampaignsPage() {
       </motion.div>
 
       {/* Results meta */}
-      {!isLoading && (
+      {!loading && (
         <div
           style={{
             display: "flex",
@@ -209,7 +209,7 @@ export default function CampaignsPage() {
       )}
 
       {/* Grid */}
-      {isLoading ? (
+      {loading ? (
         <div
           style={{
             display: "grid",

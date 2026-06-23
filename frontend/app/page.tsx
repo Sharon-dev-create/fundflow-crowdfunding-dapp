@@ -229,7 +229,7 @@ function SkeletonCard() {
 //  PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const { campaigns, isLoading } = useCampaignCount();
+  const { campaigns, loading } = useCampaignCount();
   const { totalRaised, activeCount, successCount, totalCampaigns } =
     useCampaignStats();
 
@@ -620,7 +620,7 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {isLoading ? (
+          {loading ? (
             <div
               style={{
                 display: "grid",
