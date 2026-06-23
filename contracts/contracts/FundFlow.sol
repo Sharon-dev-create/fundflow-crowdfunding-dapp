@@ -17,6 +17,33 @@ interface IBackBadge {
 /// @dev    Inherits ReentrancyGuard, Ownable, Pausable from OpenZeppelin v5.
 
 // Errors
+ error CampaignNotFound();
+    error CampaignNotActive();
+    error CampaignNotSuccessful();
+    error CampaignNotFailed();
+    error DeadlinePassed();
+    error DeadlineNotPassed();
+    error ZeroContribution();
+    error NotContributor();
+    error NotCreator();
+    error AlreadyRefunded();
+    error AlreadyVoted();
+    error VotingPeriodEnded();
+    error VotingPeriodActive();
+    error MilestoneNotFound();
+    error MilestoneAlreadyRequested();
+    error MilestoneAlreadyCompleted();
+    error MilestoneNotRequested();
+    error NoMilestonesProvided();
+    error TooManyMilestones();
+    error InvalidGoal();
+    error InvalidDuration();
+    error InvalidMilestoneAmount();
+    error MilestoneAmountMismatch();
+    error EmptyTitle();
+    error EmptyDescription();
+    error TransferFailed();
+
 
 // Constants
 uint256 public constant MAX-MILESTONES = 10;
@@ -150,5 +177,7 @@ uint256 approvalVotes, VoteOptions vote);
         uint256 duration,
         string[] calldata milestoneAmounts,
         uint256[] calldata  milestoneAmounts
-    )
+    ) external returns (uint256 campaignId) {
+        if (bytes(title).length == 0) revert InvalidTitle();
+    }
 
