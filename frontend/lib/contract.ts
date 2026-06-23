@@ -541,3 +541,6 @@ export function hasEnded(
   );
 }
 
+export const useCampaigns = useCampaignCount;
+
+
