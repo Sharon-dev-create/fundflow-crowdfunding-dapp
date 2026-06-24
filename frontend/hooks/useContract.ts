@@ -39,30 +39,32 @@ function useTxWriter() {
     async (
       args: Parameters<typeof writeContractAsync>[0],
       loadingMsg: string,
-      successMsg: string
+      successMsg: string,
     ): Promise<`0x${string}`> => {
       const toastId = toast.loading(loadingMsg);
       try {
         const hash = await writeContractAsync(args);
 
         // Plain string — no JSX in a .ts file
-        toast.success(
-          `${successMsg} View: ${etherscanTx(hash)}`,
-          { id: toastId, duration: 6000 }
-        );
+        toast.success(`${successMsg} View: ${etherscanTx(hash)}`, {
+          id: toastId,
+          duration: 6000,
+        });
 
         setTimeout(() => qc.invalidateQueries(), 3000);
         return hash;
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : "Transaction failed";
         toast.error(
-          msg.includes("User rejected") ? "Transaction rejected." : msg.slice(0, 100),
-          { id: toastId }
+          msg.includes("User rejected")
+            ? "Transaction rejected."
+            : msg.slice(0, 100),
+          { id: toastId },
         );
         throw e;
       }
     },
-    [writeContractAsync, qc]
+    [writeContractAsync, qc],
   );
 }
 
@@ -112,7 +114,7 @@ export function useCampaigns() {
     .map((r, i) =>
       r.status === "success"
         ? ({ id: BigInt(i + 1), ...(r.result as Campaign) } as CampaignWithId)
-        : null
+        : null,
     )
     .filter((c): c is CampaignWithId => c !== null)
     .reverse();
@@ -127,9 +129,9 @@ export function useCampaigns() {
 export function useCampaignStats() {
   const { campaigns, isLoading } = useCampaigns();
 
-  const totalRaised    = campaigns.reduce((sum, c) => sum + c.raisedAmount, 0n);
-  const activeCount    = campaigns.filter((c) => c.status === 0).length;
-  const successCount   = campaigns.filter((c) => c.status === 3).length;
+  const totalRaised = campaigns.reduce((sum, c) => sum + c.raisedAmount, 0n);
+  const activeCount = campaigns.filter((c) => c.status === 0).length;
+  const successCount = campaigns.filter((c) => c.status === 3).length;
   const totalCampaigns = campaigns.length;
 
   return { totalRaised, activeCount, successCount, totalCampaigns, isLoading };
@@ -200,7 +202,7 @@ export function useWalletCampaigns() {
   const { campaigns, isLoading } = useCampaigns();
 
   const created = campaigns.filter(
-    (c) => c.creator.toLowerCase() === address?.toLowerCase()
+    (c) => c.creator.toLowerCase() === address?.toLowerCase(),
   );
 
   return { created, isLoading };
@@ -266,9 +268,9 @@ export function useCreateCampaign() {
           ],
         },
         "Creating campaign…",
-        "Campaign created!"
+        "Campaign created!",
       ),
-    [tx]
+    [tx],
   );
 
   return { create, isPending };
@@ -282,15 +284,16 @@ export function useContribute() {
     async (campaignId: bigint, amountEth: string) =>
       tx(
         {
-          ...CONTRACT,
+          address: CONTRACT_ADDRESS,
+          abi: crowdfundingAbi,
           functionName: "contribute",
           args: [campaignId],
           value: parseEther(amountEth),
         },
         `Contributing ${amountEth} ETH…`,
-        `Contributed ${amountEth} ETH!`
+        `Contributed ${amountEth} ETH!`,
       ),
-    [tx]
+    [tx],
   );
 
   return { contribute, isPending };
@@ -309,9 +312,9 @@ export function useVote() {
           args: [campaignId, milestoneIndex, option],
         },
         "Casting vote…",
-        "Vote cast!"
+        "Vote cast!",
       ),
-    [tx]
+    [tx],
   );
 
   return { vote, isPending };
@@ -330,9 +333,9 @@ export function useRequestMilestone() {
           args: [campaignId, milestoneIndex],
         },
         "Requesting milestone release…",
-        "Milestone release requested!"
+        "Milestone release requested!",
       ),
-    [tx]
+    [tx],
   );
 
   return { request, isPending };
@@ -351,9 +354,9 @@ export function useFinalizeMilestone() {
           args: [campaignId, milestoneIndex],
         },
         "Finalizing milestone…",
-        "Milestone finalized!"
+        "Milestone finalized!",
       ),
-    [tx]
+    [tx],
   );
 
   return { finalize, isPending };
@@ -372,9 +375,9 @@ export function useRefund() {
           args: [campaignId],
         },
         "Claiming refund…",
-        "Refund claimed!"
+        "Refund claimed!",
       ),
-    [tx]
+    [tx],
   );
 
   return { refund, isPending };
