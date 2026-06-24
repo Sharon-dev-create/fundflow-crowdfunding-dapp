@@ -21,6 +21,7 @@ import {
   VoteOption,
 } from "@/lib/contract";
 import { etherscanTx } from "@/lib/utils";
+import type { WriteContractVariables } from "wagmi/query";
 
 // ── Shared contract base ──────────────────────────────────────────────────────
 const CONTRACT = {
@@ -36,31 +37,40 @@ function useTxWriter() {
   const { writeContractAsync } = useWriteContract();
 
   return useCallback(
-    async (
-      args: Parameters<typeof writeContractAsync>[0],
+    async <T extends Parameters<typeof writeContractAsync>[0]>(
+      args: T,
       loadingMsg: string,
       successMsg: string,
     ): Promise<`0x${string}`> => {
       const toastId = toast.loading(loadingMsg);
+
       try {
         const hash = await writeContractAsync(args);
 
-        // Plain string — no JSX in a .ts file
-        toast.success(`${successMsg} View: ${etherscanTx(hash)}`, {
-          id: toastId,
-          duration: 6000,
-        });
+        toast.success(
+          `${successMsg} View: ${etherscanTx(hash)}`,
+          {
+            id: toastId,
+            duration: 6000,
+          },
+        );
 
         setTimeout(() => qc.invalidateQueries(), 3000);
+
         return hash;
       } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : "Transaction failed";
+        const msg =
+          e instanceof Error
+            ? e.message
+            : "Transaction failed";
+
         toast.error(
           msg.includes("User rejected")
             ? "Transaction rejected."
             : msg.slice(0, 100),
           { id: toastId },
         );
+
         throw e;
       }
     },
@@ -279,6 +289,14 @@ export function useCreateCampaign() {
 export function useContribute() {
   const tx = useTxWriter();
   const { isPending } = useWriteContract();
+
+  const hash = await writeContractAsync({
+  address: CONTRACT_ADDRESS,
+  abi: crowdfundingAbi,
+  functionName: "contribute",
+  args: [campaignId],
+  value: parseEther(amountEth),
+});
 
   const contribute = useCallback(
     async (campaignId: bigint, amountEth: string) =>
