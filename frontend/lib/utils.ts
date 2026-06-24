@@ -47,3 +47,11 @@ export function statusLabel(status: number): string {
 export function statusColor(status: number): string {
   return ["#4cd7f6", "#4edea3", "#ffb4ab", "#c0c1ff"][status] ?? "#c7c4d7";
 }
+
+export function etherscanTx(hash: string): string {
+  return `https://sepolia.etherscan.io/tx/${hash}`;
+}
+
+export function etherscanAddr(addr: string): string {
+  return `https://sepolia.etherscan.io/address/${addr}`;
+}

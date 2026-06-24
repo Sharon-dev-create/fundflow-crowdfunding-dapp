@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Search, SlidersHorizontal, LayoutGrid } from "lucide-react";
-import { useCampaign } from "@/hooks/useContract";
+import { useCampaigns } from "@/hooks/useContract";
 import { CampaignCard } from "@/components/campaign/CampaignCard";
 
 const FILTERS = ["All", "Active", "Successful", "Failed", "Completed"] as const;
@@ -53,7 +53,7 @@ export default function CampaignsPage() {
   const [search, setSearch] = useState("");
   const [focused, setFocused] = useState(false);
 
-  const { campaigns, loading } = useCampaign();
+  const { campaigns, isLoading } = useCampaigns();
 
   const filtered = useMemo(() => {
     let list = [...campaigns];
@@ -189,7 +189,7 @@ export default function CampaignsPage() {
       </motion.div>
 
       {/* Results meta */}
-      {!loading && (
+      {!isLoading && (
         <div
           style={{
             display: "flex",
@@ -209,7 +209,7 @@ export default function CampaignsPage() {
       )}
 
       {/* Grid */}
-      {loading ? (
+      {isLoading ? (
         <div
           style={{
             display: "grid",

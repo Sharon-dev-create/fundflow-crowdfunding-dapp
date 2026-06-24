@@ -1,210 +1,425 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import {
-  publicClient,
+  useAccount,
+  useReadContract,
+  useReadContracts,
+  useWriteContract,
+} from "wagmi";
+import { useQueryClient } from "@tanstack/react-query";
+import { parseEther } from "viem";
+import { sepolia } from "wagmi/chains";
+import toast from "react-hot-toast";
+
+import {
   CONTRACT_ADDRESS,
   crowdfundingAbi,
-  CampaignWithId,
   Campaign,
+  CampaignWithId,
   Milestone,
+  VoteOption,
 } from "@/lib/contract";
+import { etherscanTx } from "@/lib/utils";
 
-/* =====================================================
-   INTERNAL SAFE CONTRACT CALL WRAPPER
-===================================================== */
+// ── Shared base (keeps every hook DRY) ───────────────────────────────────────
+const CONTRACT = {
+  address: CONTRACT_ADDRESS,
+  abi: crowdfundingAbi,
+  chainId: sepolia.id,
+} as const;
 
-async function read<T>(
-  functionName: string,
-  args: any[] = []
-): Promise<T> {
-  return (await publicClient.readContract({
-    address: CONTRACT_ADDRESS,
-    abi: crowdfundingAbi,
-    functionName: functionName as any,
-    args,
-  })) as T;
-}
+// ── Shared write helper ───────────────────────────────────────────────────────
+// Wraps every write call with loading / success / error toasts and
+// automatic cache invalidation. Returns the tx hash on success.
+function useTxWriter() {
+  const qc = useQueryClient();
+  const { writeContractAsync } = useWriteContract();
 
-/* =====================================================
-   CAMPAIGN COUNT
-===================================================== */
+  return useCallback(
+    async (
+      args: Parameters<typeof writeContractAsync>[0],
+      loadingMsg: string,
+      successMsg: string
+    ): Promise<`0x${string}`> => {
+      const toastId = toast.loading(loadingMsg);
+      try {
+        const hash = await writeContractAsync(args);
 
-export function useCampaignCount() {
-  const [count, setCount] = useState<bigint>(0n);
-  const [loading, setLoading] = useState(true);
+        toast.success(
+          () => (
+            <span>
+              {successMsg}{" "}
+              <a
+                href={etherscanTx(hash)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                View tx
+              </a>
+            </span>
+          ),
+          { id: toastId, duration: 6000 }
+        );
 
-  const fetchCount = useCallback(async () => {
-    try {
-      setLoading(true);
-      const result = await read<bigint>("campaignCount");
-      setCount(result);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchCount();
-  }, [fetchCount]);
-
-  return { count, loading, refetch: fetchCount };
-}
-
-/* =====================================================
-   SINGLE CAMPAIGN
-===================================================== */
-
-export function useCampaign(id?: bigint) {
-  const [campaign, setCampaign] = useState<CampaignWithId | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const fetchCampaign = useCallback(async () => {
-    if (id === undefined) return;
-
-    try {
-      setLoading(true);
-
-      const result = await read<any>("getCampaign", [id]);
-
-      setCampaign({
-        id,
-        creator: result.creator,
-        title: result.title,
-        description: result.description,
-        goal: result.goal,
-        raisedAmount: result.raisedAmount,
-        deadline: result.deadline,
-        status: result.status,
-        contributorCount: result.contributorCount,
-        currentMilestoneIndex: result.currentMilestoneIndex,
-        exists: result.exists,
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    fetchCampaign();
-  }, [fetchCampaign]);
-
-  return { campaign, loading, refetch: fetchCampaign };
-}
-
-/* =====================================================
-   ALL CAMPAIGNS
-===================================================== */
-
-export function useAllCampaigns() {
-  const [campaigns, setCampaigns] = useState<CampaignWithId[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchAll = useCallback(async () => {
-    try {
-      setLoading(true);
-
-      const count = await read<bigint>("campaignCount");
-
-      const results: CampaignWithId[] = [];
-
-      for (let i = 0n; i < count; i++) {
-        const c = await read<any>("getCampaign", [i + 1n]);
-
-        results.push({
-          id: i + 1n,
-          creator: c.creator,
-          title: c.title,
-          description: c.description,
-          goal: c.goal,
-          raisedAmount: c.raisedAmount,
-          deadline: c.deadline,
-          status: c.status,
-          contributorCount: c.contributorCount,
-          currentMilestoneIndex: c.currentMilestoneIndex,
-          exists: c.exists,
-        });
+        // Invalidate all cached reads after 3 s to let the node index the tx
+        setTimeout(() => qc.invalidateQueries(), 3000);
+        return hash;
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : "Transaction failed";
+        toast.error(
+          msg.includes("User rejected") ? "Transaction rejected." : msg.slice(0, 100),
+          { id: toastId }
+        );
+        throw e;
       }
-
-      setCampaigns(results);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
-
-  return { campaigns, loading, refetch: fetchAll };
+    },
+    [writeContractAsync, qc]
+  );
 }
 
-/* =====================================================
-   MILESTONES
-===================================================== */
+/* =============================================================================
+   READ HOOKS
+============================================================================= */
 
-export function useMilestones(id?: bigint) {
-  const [milestones, setMilestones] = useState<Milestone[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchMilestones = useCallback(async () => {
-    if (id === undefined) return;
-
-    try {
-      setLoading(true);
-
-      const result = await read<Milestone[]>("getMilestones", [id]);
-
-      setMilestones(result);
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    fetchMilestones();
-  }, [fetchMilestones]);
-
-  return { milestones, loading, refetch: fetchMilestones };
+// ── Campaign count ────────────────────────────────────────────────────────────
+export function useCampaignCount() {
+  return useReadContract({
+    ...CONTRACT,
+    functionName: "campaignCount",
+    query: { refetchInterval: 15_000 },
+  });
 }
 
-/* =====================================================
-   SIMPLE STATS (DERIVED LAYER)
-===================================================== */
+// ── Single campaign ───────────────────────────────────────────────────────────
+export function useCampaign(id: bigint) {
+  return useReadContract({
+    ...CONTRACT,
+    functionName: "getCampaign",
+    args: [id],
+    query: {
+      enabled: id > 0n,
+      refetchInterval: 12_000,
+    },
+  });
+}
 
-export function useCampaignStats() {
-  const { count, loading } = useCampaignCount();
+// ── All campaigns (batched multicall) ─────────────────────────────────────────
+// Returns every campaign as CampaignWithId[], newest first.
+export function useCampaigns() {
+  const { data: count } = useCampaignCount();
+  const total = Number(count ?? 0n);
+
+  const contracts = Array.from({ length: total }, (_, i) => ({
+    ...CONTRACT,
+    functionName: "getCampaign" as const,
+    args: [BigInt(i + 1)] as const,
+  }));
+
+  const results = useReadContracts({
+    contracts,
+    query: {
+      enabled: total > 0,
+      refetchInterval: 15_000,
+    },
+  });
+
+  const campaigns = (results.data ?? [])
+    .map((r, i) =>
+      r.status === "success"
+        ? ({ id: BigInt(i + 1), ...(r.result as Campaign) } as CampaignWithId)
+        : null
+    )
+    .filter((c): c is CampaignWithId => c !== null)
+    .reverse(); // newest first
 
   return {
-    totalCampaigns: count,
-    loading: loading,
+    campaigns,
+    isLoading: results.isLoading,
+    refetch: results.refetch,
   };
 }
 
-/* =====================================================
-   REFUND CHECK (UTILITY HOOK)
-===================================================== */
+// ── Platform-wide stats ───────────────────────────────────────────────────────
+// Used by the landing page StatCards.
+export function useCampaignStats() {
+  const { campaigns, isLoading } = useCampaigns();
 
-export function useRefundEligibility(
-  campaignId?: bigint,
-  user?: `0x${string}`
-) {
-  const [eligible, setEligible] = useState(false);
+  const totalRaised   = campaigns.reduce((sum, c) => sum + c.raisedAmount, 0n);
+  const activeCount   = campaigns.filter((c) => c.status === 0).length;
+  const successCount  = campaigns.filter((c) => c.status === 3).length;
+  const totalCampaigns = campaigns.length;
 
-  const check = useCallback(async () => {
-    if (!campaignId || !user) return;
-
-    const result = await read<boolean>("isEligibleForRefund", [
-      campaignId,
-      user,
-    ]);
-
-    setEligible(result);
-  }, [campaignId, user]);
-
-  useEffect(() => {
-    check();
-  }, [check]);
-
-  return { eligible, refetch: check };
+  return { totalRaised, activeCount, successCount, totalCampaigns, isLoading };
 }
+
+// ── Milestones for a campaign ─────────────────────────────────────────────────
+export function useMilestones(campaignId: bigint) {
+  return useReadContract({
+    ...CONTRACT,
+    functionName: "getMilestones",
+    args: [campaignId],
+    query: {
+      enabled: campaignId > 0n,
+      refetchInterval: 12_000,
+    },
+  });
+}
+
+// ── Connected wallet's ETH contribution to one campaign ──────────────────────
+export function useContribution(campaignId: bigint) {
+  const { address } = useAccount();
+
+  return useReadContract({
+    ...CONTRACT,
+    functionName: "getContribution",
+    args: address ? [campaignId, address] : undefined,
+    query: {
+      enabled: !!address && campaignId > 0n,
+      refetchInterval: 15_000,
+    },
+  });
+}
+
+// ── All contributor addresses for a campaign ──────────────────────────────────
+export function useContributors(campaignId: bigint) {
+  return useReadContract({
+    ...CONTRACT,
+    functionName: "getContributors",
+    args: [campaignId],
+    query: {
+      enabled: campaignId > 0n,
+    },
+  });
+}
+
+// ── Vote status: has the wallet voted, plus current tally ────────────────────
+// Returns [voted: bool, approvals: bigint, rejections: bigint]
+export function useVoteStatus(campaignId: bigint, milestoneIndex: bigint) {
+  const { address } = useAccount();
+
+  return useReadContract({
+    ...CONTRACT,
+    functionName: "getVoteStatus",
+    args: address ? [campaignId, milestoneIndex, address] : undefined,
+    query: {
+      enabled: !!address && campaignId > 0n,
+      refetchInterval: 10_000,
+    },
+  });
+}
+
+// ── Whether the connected wallet can claim a refund ───────────────────────────
+export function useRefundEligibility(campaignId: bigint) {
+  const { address } = useAccount();
+
+  return useReadContract({
+    ...CONTRACT,
+    functionName: "isEligibleForRefund",
+    args: address ? [campaignId, address] : undefined,
+    query: {
+      enabled: !!address && campaignId > 0n,
+      refetchInterval: 15_000,
+    },
+  });
+}
+
+// ── Campaigns created by the connected wallet ─────────────────────────────────
+// Used by the Creator Dashboard.
+export function useWalletCampaigns() {
+  const { address } = useAccount();
+  const { campaigns, isLoading } = useCampaigns();
+
+  const created = campaigns.filter(
+    (c) => c.creator.toLowerCase() === address?.toLowerCase()
+  );
+
+  return { created, isLoading };
+}
+
+// ── Campaigns the connected wallet has backed ─────────────────────────────────
+// Used by the Backer Portfolio page.
+export function useWalletContributions() {
+  const { address } = useAccount();
+  const { campaigns, isLoading } = useCampaigns();
+
+  const ids = campaigns.map((c) => c.id);
+
+  const results = useReadContracts({
+    contracts: address
+      ? ids.map((id) => ({
+          ...CONTRACT,
+          functionName: "getContribution" as const,
+          args: [id, address] as const,
+        }))
+      : [],
+    query: {
+      enabled: !!address && ids.length > 0,
+    },
+  });
+
+  // Pair each campaign with the wallet's contribution amount
+  const backed = campaigns
+    .map((c, i) => ({
+      campaign: c,
+      contribution: results.data?.[i]?.result as bigint | undefined,
+    }))
+    .filter((x) => x.contribution !== undefined && x.contribution > 0n);
+
+  return { backed, isLoading: isLoading || results.isLoading };
+}
+
+/* =============================================================================
+   WRITE HOOKS
+============================================================================= */
+
+// ── Create campaign ───────────────────────────────────────────────────────────
+export function useCreateCampaign() {
+  const tx = useTxWriter();
+  const { isPending } = useWriteContract();
+
+  const create = useCallback(
+    async (params: {
+      title: string;
+      description: string;
+      goal: string;          // in ETH, e.g. "1.5"
+      duration: number;      // in seconds
+      milestoneTitles: string[];
+      milestoneAmounts: string[]; // in ETH each
+    }) =>
+      tx(
+        {
+          ...CONTRACT,
+          functionName: "createCampaign",
+          args: [
+            params.title,
+            params.description,
+            parseEther(params.goal),
+            BigInt(params.duration),
+            params.milestoneTitles,
+            params.milestoneAmounts.map((a) => parseEther(a)),
+          ],
+        },
+        "Creating campaign…",
+        "Campaign created!"
+      ),
+    [tx]
+  );
+
+  return { create, isPending };
+}
+
+// ── Contribute ETH ────────────────────────────────────────────────────────────
+export function useContribute() {
+  const tx = useTxWriter();
+  const { isPending } = useWriteContract();
+
+  const contribute = useCallback(
+    async (campaignId: bigint, amountEth: string) =>
+      tx(
+        {
+          ...CONTRACT,
+          functionName: "contribute",
+          args: [campaignId],
+          value: parseEther(amountEth),
+        },
+        `Contributing ${amountEth} ETH…`,
+        `Contributed ${amountEth} ETH!`
+      ),
+    [tx]
+  );
+
+  return { contribute, isPending };
+}
+
+// ── Cast a vote ───────────────────────────────────────────────────────────────
+export function useVote() {
+  const tx = useTxWriter();
+  const { isPending } = useWriteContract();
+
+  const vote = useCallback(
+    async (campaignId: bigint, milestoneIndex: bigint, option: VoteOption) =>
+      tx(
+        {
+          ...CONTRACT,
+          functionName: "vote",
+          args: [campaignId, milestoneIndex, option],
+        },
+        "Casting vote…",
+        "Vote cast!"
+      ),
+    [tx]
+  );
+
+  return { vote, isPending };
+}
+
+// ── Request milestone release (creator only) ──────────────────────────────────
+export function useRequestMilestone() {
+  const tx = useTxWriter();
+  const { isPending } = useWriteContract();
+
+  const request = useCallback(
+    async (campaignId: bigint, milestoneIndex: bigint) =>
+      tx(
+        {
+          ...CONTRACT,
+          functionName: "requestMilestoneRelease",
+          args: [campaignId, milestoneIndex],
+        },
+        "Requesting milestone release…",
+        "Milestone release requested!"
+      ),
+    [tx]
+  );
+
+  return { request, isPending };
+}
+
+// ── Finalize milestone after voting ends (anyone can call) ────────────────────
+export function useFinalizeMilestone() {
+  const tx = useTxWriter();
+  const { isPending } = useWriteContract();
+
+  const finalize = useCallback(
+    async (campaignId: bigint, milestoneIndex: bigint) =>
+      tx(
+        {
+          ...CONTRACT,
+          functionName: "finalizeMilestone",
+          args: [campaignId, milestoneIndex],
+        },
+        "Finalizing milestone…",
+        "Milestone finalized!"
+      ),
+    [tx]
+  );
+
+  return { finalize, isPending };
+}
+
+// ── Claim refund (contributor on failed campaign) ─────────────────────────────
+export function useRefund() {
+  const tx = useTxWriter();
+  const { isPending } = useWriteContract();
+
+  const refund = useCallback(
+    async (campaignId: bigint) =>
+      tx(
+        {
+          ...CONTRACT,
+          functionName: "claimRefund",
+          args: [campaignId],
+        },
+        "Claiming refund…",
+        "Refund claimed!"
+      ),
+    [tx]
+  );
+
+  return { refund, isPending };
+}
+
+// ── Re-export types so pages only need one import ─────────────────────────────
+export type { Campaign, CampaignWithId, Milestone };
