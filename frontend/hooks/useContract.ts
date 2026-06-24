@@ -22,7 +22,7 @@ import {
 } from "@/lib/contract";
 import { etherscanTx } from "@/lib/utils";
 
-// ── Shared base (keeps every hook DRY) ───────────────────────────────────────
+// ── Shared contract base ──────────────────────────────────────────────────────
 const CONTRACT = {
   address: CONTRACT_ADDRESS,
   abi: crowdfundingAbi,
@@ -30,8 +30,7 @@ const CONTRACT = {
 } as const;
 
 // ── Shared write helper ───────────────────────────────────────────────────────
-// Wraps every write call with loading / success / error toasts and
-// automatic cache invalidation. Returns the tx hash on success.
+// Plain .ts file — NO JSX. Toast messages are strings only.
 function useTxWriter() {
   const qc = useQueryClient();
   const { writeContractAsync } = useWriteContract();
@@ -46,24 +45,12 @@ function useTxWriter() {
       try {
         const hash = await writeContractAsync(args);
 
+        // Plain string — no JSX in a .ts file
         toast.success(
-          () => (
-            <span>
-              {successMsg}{" "}
-              <a
-                href={etherscanTx(hash)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline"
-              >
-                View tx
-              </a>
-            </span>
-          ),
+          `${successMsg} View: ${etherscanTx(hash)}`,
           { id: toastId, duration: 6000 }
         );
 
-        // Invalidate all cached reads after 3 s to let the node index the tx
         setTimeout(() => qc.invalidateQueries(), 3000);
         return hash;
       } catch (e: unknown) {
@@ -83,7 +70,6 @@ function useTxWriter() {
    READ HOOKS
 ============================================================================= */
 
-// ── Campaign count ────────────────────────────────────────────────────────────
 export function useCampaignCount() {
   return useReadContract({
     ...CONTRACT,
@@ -92,7 +78,6 @@ export function useCampaignCount() {
   });
 }
 
-// ── Single campaign ───────────────────────────────────────────────────────────
 export function useCampaign(id: bigint) {
   return useReadContract({
     ...CONTRACT,
@@ -105,8 +90,6 @@ export function useCampaign(id: bigint) {
   });
 }
 
-// ── All campaigns (batched multicall) ─────────────────────────────────────────
-// Returns every campaign as CampaignWithId[], newest first.
 export function useCampaigns() {
   const { data: count } = useCampaignCount();
   const total = Number(count ?? 0n);
@@ -132,7 +115,7 @@ export function useCampaigns() {
         : null
     )
     .filter((c): c is CampaignWithId => c !== null)
-    .reverse(); // newest first
+    .reverse();
 
   return {
     campaigns,
@@ -141,20 +124,17 @@ export function useCampaigns() {
   };
 }
 
-// ── Platform-wide stats ───────────────────────────────────────────────────────
-// Used by the landing page StatCards.
 export function useCampaignStats() {
   const { campaigns, isLoading } = useCampaigns();
 
-  const totalRaised   = campaigns.reduce((sum, c) => sum + c.raisedAmount, 0n);
-  const activeCount   = campaigns.filter((c) => c.status === 0).length;
-  const successCount  = campaigns.filter((c) => c.status === 3).length;
+  const totalRaised    = campaigns.reduce((sum, c) => sum + c.raisedAmount, 0n);
+  const activeCount    = campaigns.filter((c) => c.status === 0).length;
+  const successCount   = campaigns.filter((c) => c.status === 3).length;
   const totalCampaigns = campaigns.length;
 
   return { totalRaised, activeCount, successCount, totalCampaigns, isLoading };
 }
 
-// ── Milestones for a campaign ─────────────────────────────────────────────────
 export function useMilestones(campaignId: bigint) {
   return useReadContract({
     ...CONTRACT,
@@ -167,10 +147,8 @@ export function useMilestones(campaignId: bigint) {
   });
 }
 
-// ── Connected wallet's ETH contribution to one campaign ──────────────────────
 export function useContribution(campaignId: bigint) {
   const { address } = useAccount();
-
   return useReadContract({
     ...CONTRACT,
     functionName: "getContribution",
@@ -182,23 +160,17 @@ export function useContribution(campaignId: bigint) {
   });
 }
 
-// ── All contributor addresses for a campaign ──────────────────────────────────
 export function useContributors(campaignId: bigint) {
   return useReadContract({
     ...CONTRACT,
     functionName: "getContributors",
     args: [campaignId],
-    query: {
-      enabled: campaignId > 0n,
-    },
+    query: { enabled: campaignId > 0n },
   });
 }
 
-// ── Vote status: has the wallet voted, plus current tally ────────────────────
-// Returns [voted: bool, approvals: bigint, rejections: bigint]
 export function useVoteStatus(campaignId: bigint, milestoneIndex: bigint) {
   const { address } = useAccount();
-
   return useReadContract({
     ...CONTRACT,
     functionName: "getVoteStatus",
@@ -210,10 +182,8 @@ export function useVoteStatus(campaignId: bigint, milestoneIndex: bigint) {
   });
 }
 
-// ── Whether the connected wallet can claim a refund ───────────────────────────
 export function useRefundEligibility(campaignId: bigint) {
   const { address } = useAccount();
-
   return useReadContract({
     ...CONTRACT,
     functionName: "isEligibleForRefund",
@@ -225,8 +195,6 @@ export function useRefundEligibility(campaignId: bigint) {
   });
 }
 
-// ── Campaigns created by the connected wallet ─────────────────────────────────
-// Used by the Creator Dashboard.
 export function useWalletCampaigns() {
   const { address } = useAccount();
   const { campaigns, isLoading } = useCampaigns();
@@ -238,8 +206,6 @@ export function useWalletCampaigns() {
   return { created, isLoading };
 }
 
-// ── Campaigns the connected wallet has backed ─────────────────────────────────
-// Used by the Backer Portfolio page.
 export function useWalletContributions() {
   const { address } = useAccount();
   const { campaigns, isLoading } = useCampaigns();
@@ -259,7 +225,6 @@ export function useWalletContributions() {
     },
   });
 
-  // Pair each campaign with the wallet's contribution amount
   const backed = campaigns
     .map((c, i) => ({
       campaign: c,
@@ -274,7 +239,6 @@ export function useWalletContributions() {
    WRITE HOOKS
 ============================================================================= */
 
-// ── Create campaign ───────────────────────────────────────────────────────────
 export function useCreateCampaign() {
   const tx = useTxWriter();
   const { isPending } = useWriteContract();
@@ -283,10 +247,10 @@ export function useCreateCampaign() {
     async (params: {
       title: string;
       description: string;
-      goal: string;          // in ETH, e.g. "1.5"
-      duration: number;      // in seconds
+      goal: string;
+      duration: number;
       milestoneTitles: string[];
-      milestoneAmounts: string[]; // in ETH each
+      milestoneAmounts: string[];
     }) =>
       tx(
         {
@@ -310,7 +274,6 @@ export function useCreateCampaign() {
   return { create, isPending };
 }
 
-// ── Contribute ETH ────────────────────────────────────────────────────────────
 export function useContribute() {
   const tx = useTxWriter();
   const { isPending } = useWriteContract();
@@ -333,7 +296,6 @@ export function useContribute() {
   return { contribute, isPending };
 }
 
-// ── Cast a vote ───────────────────────────────────────────────────────────────
 export function useVote() {
   const tx = useTxWriter();
   const { isPending } = useWriteContract();
@@ -355,7 +317,6 @@ export function useVote() {
   return { vote, isPending };
 }
 
-// ── Request milestone release (creator only) ──────────────────────────────────
 export function useRequestMilestone() {
   const tx = useTxWriter();
   const { isPending } = useWriteContract();
@@ -377,7 +338,6 @@ export function useRequestMilestone() {
   return { request, isPending };
 }
 
-// ── Finalize milestone after voting ends (anyone can call) ────────────────────
 export function useFinalizeMilestone() {
   const tx = useTxWriter();
   const { isPending } = useWriteContract();
@@ -399,7 +359,6 @@ export function useFinalizeMilestone() {
   return { finalize, isPending };
 }
 
-// ── Claim refund (contributor on failed campaign) ─────────────────────────────
 export function useRefund() {
   const tx = useTxWriter();
   const { isPending } = useWriteContract();
@@ -421,5 +380,5 @@ export function useRefund() {
   return { refund, isPending };
 }
 
-// ── Re-export types so pages only need one import ─────────────────────────────
+// Re-export types
 export type { Campaign, CampaignWithId, Milestone };
