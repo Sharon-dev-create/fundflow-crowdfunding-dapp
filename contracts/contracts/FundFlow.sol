@@ -178,6 +178,13 @@ uint256 approvalVotes, VoteOptions vote);
         string[] calldata milestoneAmounts,
         uint256[] calldata  milestoneAmounts
     ) external returns (uint256 campaignId) {
-        if (bytes(title).length == 0) revert InvalidTitle();
+        if (bytes(title).length == 0) revert EmptyTitle();
+        if (bytes(description).length == 0) revert EmptyDescription();
+        if (goal == 0) revert InvalidGoal();
+        if (duration < MIN_DURATION || duration > MAX_DURATION) revert InvalidDuration();
+        if (milestoneTitles.length == 0) revert NoMilestonesProvided();
+        if (milestoneTitles.length > MAX_MILESTONES) revert TooManyMilestones();
+        if (milestoneTitles.lenth != milestoneAmounts.length) revert MilestoneAmountMismatch();
+            
     }
 

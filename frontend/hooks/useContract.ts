@@ -290,20 +290,11 @@ export function useContribute() {
   const tx = useTxWriter();
   const { isPending } = useWriteContract();
 
-  const hash = await writeContractAsync({
-  address: CONTRACT_ADDRESS,
-  abi: crowdfundingAbi,
-  functionName: "contribute",
-  args: [campaignId],
-  value: parseEther(amountEth),
-});
-
   const contribute = useCallback(
     async (campaignId: bigint, amountEth: string) =>
       tx(
         {
-          address: CONTRACT_ADDRESS,
-          abi: crowdfundingAbi,
+          ...CONTRACT,
           functionName: "contribute",
           args: [campaignId],
           value: parseEther(amountEth),
