@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, Shield, Vote, Zap, RefreshCw } from "lucide-react";
-import { useCampaignCount, useCampaignStats } from "@/hooks/useContract";
+import { useCampaigns, useCampaignStats } from "@/hooks/useContract";
 import { CampaignCard } from "@/components/campaign/CampaignCard";
 import { formatEth } from "@/lib/utils";
 
@@ -229,7 +229,7 @@ function SkeletonCard() {
 //  PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const { campaigns, loading } = useCampaignCount();
+  const { campaigns, isLoading } = useCampaigns();
   const { totalRaised, activeCount, successCount, totalCampaigns } =
     useCampaignStats();
 
@@ -620,7 +620,7 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {loading ? (
+          {isLoading ? (
             <div
               style={{
                 display: "grid",
