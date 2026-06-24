@@ -417,12 +417,12 @@ export default function HomePage() {
                 boxShadow: "0 4px 20px rgba(192,193,255,0.22)",
                 transition: "transform 0.15s, box-shadow 0.15s",
               }}
-              onMouseEnter={(e) => {
+              onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
                 (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)";
                 (e.currentTarget as HTMLAnchorElement).style.boxShadow =
                   "0 8px 28px rgba(192,193,255,0.3)";
               }}
-              onMouseLeave={(e) => {
+              onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
                 (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)";
                 (e.currentTarget as HTMLAnchorElement).style.boxShadow =
                   "0 4px 20px rgba(192,193,255,0.22)";
@@ -446,13 +446,13 @@ export default function HomePage() {
                 fontSize: 15,
                 transition: "background 0.15s, border-color 0.15s",
               }}
-              onMouseEnter={(e) => {
+              onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
                 (e.currentTarget as HTMLAnchorElement).style.background =
                   "rgba(255,255,255,0.09)";
                 (e.currentTarget as HTMLAnchorElement).style.borderColor =
                   "rgba(255,255,255,0.2)";
               }}
-              onMouseLeave={(e) => {
+              onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
                 (e.currentTarget as HTMLAnchorElement).style.background =
                   "rgba(255,255,255,0.05)";
                 (e.currentTarget as HTMLAnchorElement).style.borderColor =
@@ -609,10 +609,10 @@ export default function HomePage() {
                 textDecoration: "none",
                 transition: "opacity 0.15s",
               }}
-              onMouseEnter={(e) =>
+              onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) =>
                 ((e.currentTarget as HTMLAnchorElement).style.opacity = "0.75")
               }
-              onMouseLeave={(e) =>
+              onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) =>
                 ((e.currentTarget as HTMLAnchorElement).style.opacity = "1")
               }
             >
@@ -906,10 +906,10 @@ export default function HomePage() {
                   textDecoration: "none",
                   transition: "color 0.15s",
                 }}
-                onMouseEnter={(e) =>
+                onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) =>
                   ((e.currentTarget as HTMLAnchorElement).style.color = "#dae2fd")
                 }
-                onMouseLeave={(e) =>
+                onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) =>
                   ((e.currentTarget as HTMLAnchorElement).style.color = "#c7c4d7")
                 }
               >

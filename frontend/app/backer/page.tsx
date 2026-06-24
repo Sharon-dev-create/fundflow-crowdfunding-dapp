@@ -4,11 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAccount } from "wagmi";
 import { Wallet, ExternalLink, AlertTriangle } from "lucide-react";
-import {
-  useWalletContributions,
-  useRefundEligibility,
-  useRefund,
-} from "@/hooks/useContract";
+import { useWalletContributions, useRefundEligibility, useRefund } from "@/hooks/useContract";
 import { CampaignWithId, CampaignStatus } from "@/lib/contract";
 import {
   formatEth,
@@ -23,12 +19,6 @@ import { StatusPill } from "@/components/ui/StatusPill";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-type BackedEntry = {
-  campaign: CampaignWithId;
-  contribution: bigint | undefined;
-};
-
 // ── Spinner ───────────────────────────────────────────────────────────────────
 function Spinner({ color = "#ffb4ab" }: { color?: string }) {
   return (
@@ -39,9 +29,8 @@ function Spinner({ color = "#ffb4ab" }: { color?: string }) {
   );
 }
 
-// ── Refund button — isolated so each campaign gets its own hook call ──────────
+// ── Refund button — isolated so hook runs per campaign ────────────────────────
 function RefundButton({ campaign }: { campaign: CampaignWithId }) {
-  // useRefundEligibility returns wagmi's useReadContract shape: { data, isLoading, ... }
   const { data: eligible } = useRefundEligibility(campaign.id);
   const { refund, isPending } = useRefund();
 
@@ -65,7 +54,7 @@ function RefundButton({ campaign }: { campaign: CampaignWithId }) {
   );
 }
 
-// ── Individual backed campaign card ──────────────────────────────────────────
+// ── Backed campaign card ──────────────────────────────────────────────────────
 function BackedCard({
   campaign,
   contribution,
@@ -77,6 +66,8 @@ function BackedCard({
 }) {
   const pct  = formatPercent(campaign.raisedAmount, campaign.goal);
   const days = daysRemaining(campaign.deadline);
+
+  // Contribution as share of total raised
   const share =
     campaign.raisedAmount > 0n
       ? Math.round(Number((contribution * 10000n) / campaign.raisedAmount) / 100)
@@ -99,14 +90,14 @@ function BackedCard({
           boxShadow: "0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)",
           transition: "border-color 0.2s",
         }}
-        onMouseEnter={(e) =>
+        onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) =>
           ((e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.14)")
         }
-        onMouseLeave={(e) =>
+        onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) =>
           ((e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.08)")
         }
       >
-        {/* Status colour band */}
+        {/* Status bar */}
         <div style={{ height: 3, background: `linear-gradient(90deg,${statusColor(campaign.status)},${statusColor(campaign.status)}44)` }} />
 
         <div style={{ padding: 24 }}>
@@ -126,28 +117,38 @@ function BackedCard({
             <StatusPill status={campaign.status} />
           </div>
 
-          {/* Contribution grid */}
+          {/* Two-column grid */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 18 }}>
+            {/* Your contribution */}
             <div style={{ background: "rgba(78,222,163,0.06)", border: "1px solid rgba(78,222,163,0.15)", borderRadius: 10, padding: "12px 14px" }}>
-              <div style={{ color: "#c7c4d7", fontSize: 10, fontFamily: "JetBrains Mono, monospace", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Your Contribution</div>
-              <div style={{ color: "#4edea3", fontWeight: 700, fontSize: 18, fontFamily: "JetBrains Mono, monospace" }}>
+              <div style={{ color: "#c7c4d7", fontSize: 10, fontFamily: "JetBrains Mono, monospace", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+                Your Contribution
+              </div>
+              <div style={{ color: "#4edea3", fontWeight: 700, fontSize: 18, fontFamily: "JetBrains Mono, monospace", letterSpacing: "-0.01em" }}>
                 {formatEth(contribution)}
                 <span style={{ fontSize: 12, color: "#c7c4d7", fontWeight: 400, marginLeft: 4 }}>ETH</span>
               </div>
-              <div style={{ color: "#c7c4d7", fontSize: 11, marginTop: 4 }}>{share}% of total raised</div>
+              <div style={{ color: "#c7c4d7", fontSize: 11, marginTop: 4 }}>
+                {share}% of total raised
+              </div>
             </div>
 
+            {/* Campaign funding */}
             <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, padding: "12px 14px" }}>
-              <div style={{ color: "#c7c4d7", fontSize: 10, fontFamily: "JetBrains Mono, monospace", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Campaign Total</div>
-              <div style={{ color: "#dae2fd", fontWeight: 700, fontSize: 18, fontFamily: "JetBrains Mono, monospace" }}>
+              <div style={{ color: "#c7c4d7", fontSize: 10, fontFamily: "JetBrains Mono, monospace", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+                Campaign Total
+              </div>
+              <div style={{ color: "#dae2fd", fontWeight: 700, fontSize: 18, fontFamily: "JetBrains Mono, monospace", letterSpacing: "-0.01em" }}>
                 {formatEth(campaign.raisedAmount)}
                 <span style={{ fontSize: 12, color: "#c7c4d7", fontWeight: 400, marginLeft: 4 }}>ETH</span>
               </div>
-              <div style={{ color: "#c7c4d7", fontSize: 11, marginTop: 4 }}>of {formatEth(campaign.goal)} ETH goal</div>
+              <div style={{ color: "#c7c4d7", fontSize: 11, marginTop: 4 }}>
+                of {formatEth(campaign.goal)} ETH goal
+              </div>
             </div>
           </div>
 
-          {/* Progress bar */}
+          {/* Progress */}
           <div style={{ marginBottom: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#c7c4d7", marginBottom: 6 }}>
               <span>Funding progress</span>
@@ -156,22 +157,32 @@ function BackedCard({
             <ProgressBar percent={pct} height={6} />
           </div>
 
-          {/* Footer row */}
+          {/* Footer */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
-            <div style={{ display: "flex", gap: 16 }}>
-              <span style={{ color: "#c7c4d7", fontSize: 12 }}>
-                {campaign.status === CampaignStatus.Active ? `${days}d remaining` : "Ended"}
-              </span>
-              <span style={{ color: "#c7c4d7", fontSize: 12 }}>
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+              <div style={{ color: "#c7c4d7", fontSize: 12 }}>
+                <span style={{ marginRight: 4 }}>
+                  {campaign.status === CampaignStatus.Active ? `${days}d remaining` : "Ended"}
+                </span>
+              </div>
+              <div style={{ color: "#c7c4d7", fontSize: 12 }}>
                 {campaign.contributorCount.toString()} backers
-              </span>
+              </div>
             </div>
 
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              {/* Refund button (only shows when eligible) */}
               <RefundButton campaign={campaign} />
+
+              {/* View campaign */}
               <Link
                 href={`/campaigns/${campaign.id}`}
-                style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 8, fontSize: 12, fontWeight: 500, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "#c7c4d7", textDecoration: "none" }}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 5,
+                  padding: "7px 14px", borderRadius: 8, fontSize: 12, fontWeight: 500,
+                  border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)",
+                  color: "#c7c4d7", textDecoration: "none", transition: "all 0.15s",
+                }}
               >
                 View <ExternalLink size={11} />
               </Link>
@@ -188,17 +199,12 @@ function BackedCard({
 // ─────────────────────────────────────────────────────────────────────────────
 export default function BackerPage() {
   const { address, isConnected } = useAccount();
-
-  // useWalletContributions returns { backed: BackedEntry[], isLoading: boolean }
   const { backed, isLoading } = useWalletContributions();
 
-  const totalContributed: bigint = backed.reduce(
-    (sum: bigint, b: BackedEntry) => sum + (b.contribution ?? 0n),
-    0n
-  );
-  const activeBacked  = backed.filter((b: BackedEntry) => b.campaign.status === CampaignStatus.Active).length;
-  const successBacked = backed.filter((b: BackedEntry) => b.campaign.status === CampaignStatus.Completed).length;
-  const hasVotingRights = backed.some((b: BackedEntry) => b.campaign.status === CampaignStatus.Successful);
+  // Aggregate stats
+  const totalContributed = backed.reduce((s, b) => s + (b.contribution ?? 0n), 0n);
+  const activeBacked     = backed.filter(b => b.campaign.status === CampaignStatus.Active).length;
+  const successBacked    = backed.filter(b => b.campaign.status === CampaignStatus.Completed).length;
 
   if (!isConnected) {
     return (
@@ -237,7 +243,7 @@ export default function BackerPage() {
         </div>
       </motion.div>
 
-      {/* Stats row */}
+      {/* Stats — only show once data loads */}
       {!isLoading && backed.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
@@ -245,20 +251,23 @@ export default function BackerPage() {
           transition={{ delay: 0.06 }}
           style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 14, marginBottom: 32 }}
         >
-          {(
-            [
-              { label: "Total Backed",     value: `${formatEth(totalContributed, 3)} ETH`, accent: "#4edea3" },
-              { label: "Campaigns Backed", value: backed.length.toString(),                accent: "#c0c1ff" },
-              { label: "Active",           value: activeBacked.toString(),                 accent: "#4cd7f6" },
-              { label: "Completed",        value: successBacked.toString(),                accent: "#4edea3" },
-            ] as { label: string; value: string; accent: string }[]
-          ).map(({ label, value, accent }, i) => (
+          {[
+            { label: "Total Backed",     value: `${formatEth(totalContributed, 3)} ETH`, accent: "#4edea3" },
+            { label: "Campaigns Backed", value: backed.length.toString(),                accent: "#c0c1ff" },
+            { label: "Active",           value: activeBacked.toString(),                 accent: "#4cd7f6" },
+            { label: "Completed",        value: successBacked.toString(),                accent: "#4edea3" },
+          ].map(({ label, value, accent }, i) => (
             <motion.div
               key={label}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.08 + i * 0.04 }}
-              style={{ background: "rgba(15,23,42,0.7)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "18px 20px", boxShadow: "0 4px 20px rgba(0,0,0,0.3)" }}
+              style={{
+                background: "rgba(15,23,42,0.7)", backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: 14, padding: "18px 20px",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+              }}
             >
               <div style={{ color: "#c7c4d7", fontSize: 10, fontFamily: "JetBrains Mono, monospace", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>{label}</div>
               <div style={{ color: accent, fontSize: 22, fontWeight: 700, fontFamily: "JetBrains Mono, monospace", letterSpacing: "-0.02em" }}>{value}</div>
@@ -268,27 +277,32 @@ export default function BackerPage() {
         </motion.div>
       )}
 
-      {/* Voting rights banner */}
-      {!isLoading && hasVotingRights && (
+      {/* Voting rights notice */}
+      {!isLoading && backed.some(b => b.campaign.status === CampaignStatus.Successful) && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.15 }}
-          style={{ display: "flex", gap: 10, padding: "12px 16px", background: "rgba(192,193,255,0.05)", border: "1px solid rgba(192,193,255,0.15)", borderRadius: 12, marginBottom: 24 }}
+          style={{
+            display: "flex", gap: 10, padding: "12px 16px",
+            background: "rgba(192,193,255,0.05)", border: "1px solid rgba(192,193,255,0.15)",
+            borderRadius: 12, marginBottom: 24,
+          }}
         >
           <div style={{ width: 20, height: 20, borderRadius: "50%", background: "rgba(192,193,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
             <span style={{ color: "#c0c1ff", fontSize: 11, fontWeight: 700 }}>!</span>
           </div>
           <p style={{ color: "#c7c4d7", fontSize: 13, lineHeight: 1.55 }}>
-            You have <strong style={{ color: "#c0c1ff" }}>voting rights</strong> on campaigns with an active milestone request. Visit a campaign to cast your vote.
+            You have <strong style={{ color: "#c0c1ff" }}>voting rights</strong> on active milestone requests
+            for campaigns with a Successful status. Visit the campaign page to cast your vote.
           </p>
         </motion.div>
       )}
 
-      {/* List */}
+      {/* Campaign list */}
       {isLoading ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          {[0, 1, 2].map((i) => (
+          {[0, 1, 2].map(i => (
             <div key={i} style={{ background: "rgba(15,23,42,0.7)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: 24, display: "flex", flexDirection: "column", gap: 14 }}>
               <Skeleton height={18} width="55%" />
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -307,7 +321,12 @@ export default function BackerPage() {
           action={
             <Link
               href="/campaigns"
-              style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "11px 22px", borderRadius: 8, textDecoration: "none", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "#dae2fd", fontWeight: 600, fontSize: 14, marginTop: 4 }}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 7,
+                padding: "11px 22px", borderRadius: 8, textDecoration: "none",
+                background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
+                color: "#dae2fd", fontWeight: 600, fontSize: 14, marginTop: 4,
+              }}
             >
               Explore Campaigns
             </Link>
@@ -315,11 +334,11 @@ export default function BackerPage() {
         />
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          {backed.map((b: BackedEntry, i: number) => (
+          {backed.map(({ campaign, contribution }, i) => (
             <BackedCard
-              key={b.campaign.id.toString()}
-              campaign={b.campaign}
-              contribution={b.contribution!}
+              key={campaign.id.toString()}
+              campaign={campaign}
+              contribution={contribution!}
               index={i}
             />
           ))}

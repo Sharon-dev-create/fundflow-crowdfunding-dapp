@@ -8,10 +8,7 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 import { StatusPill } from "@/components/ui/StatusPill";
 
 export function CampaignCard({ campaign, index = 0 }: { campaign: CampaignWithId; index?: number }) {
-
   const pct = formatPercent(campaign.raisedAmount, campaign.goal);
-  // const pct = formatPercent(campaign.raised, campaign.goal);
-// >>>>>>> 4840e64391d39b2f4b94ad5d0bd0db6837acdbb6
   const days = daysRemaining(campaign.deadline);
 
   return (
@@ -23,8 +20,8 @@ export function CampaignCard({ campaign, index = 0 }: { campaign: CampaignWithId
     >
       <Link href={`/campaigns/${campaign.id}`} className="block h-full" style={{ textDecoration: "none" }}>
         <div className="h-full flex flex-col" style={{ background: "rgba(15,23,42,0.7)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, overflow: "hidden", transition: "border-color 0.2s, box-shadow 0.2s", boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
-          onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(192,193,255,0.2)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(192,193,255,0.1)"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.08)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 24px rgba(0,0,0,0.3)"; }}
+          onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(192,193,255,0.2)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(192,193,255,0.1)"; }}
+          onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.08)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 24px rgba(0,0,0,0.3)"; }}
         >
           {/* Color band */}
           <div style={{ height: 4, background: `linear-gradient(90deg,${statusColor(campaign.status)},${statusColor(campaign.status)}44)` }} />
@@ -51,10 +48,7 @@ export function CampaignCard({ campaign, index = 0 }: { campaign: CampaignWithId
             {/* Progress */}
             <div>
               <div className="flex justify-between items-baseline mb-2">
-
                 <span style={{ color: "#4edea3", fontWeight: 600, fontSize: 20, fontFamily: "JetBrains Mono, monospace" }}>{formatEth(campaign.raisedAmount)} <span style={{ fontSize: 13, color: "#c7c4d7", fontWeight: 400 }}>ETH</span></span>
-                <span style={{ color: "#4edea3", fontWeight: 600, fontSize: 20, fontFamily: "JetBrains Mono, monospace" }}>{formatEth(campaign.raised)} <span style={{ fontSize: 13, color: "#c7c4d7", fontWeight: 400 }}>ETH</span></span>
-{/* >>>>>>> 4840e64391d39b2f4b94ad5d0bd0db6837acdbb6 */}
                 <span style={{ color: "#c7c4d7", fontSize: 12 }}>{pct}%</span>
               </div>
               <ProgressBar percent={pct} />
@@ -81,4 +75,4 @@ export function CampaignCard({ campaign, index = 0 }: { campaign: CampaignWithId
       </Link>
     </motion.div>
   );
-} 
+}
