@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { CheckCircle, Circle, Clock, ChevronRight } from "lucide-react";
 import { Milestone } from "@/lib/contract";
 import { formatEth } from "@/lib/utils";
-import { ProgressBar } from "../components/ui/ProgressBar";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 
 type Props = { milestones: Milestone[]; currentIndex: bigint; contributorCount: bigint; };
 
