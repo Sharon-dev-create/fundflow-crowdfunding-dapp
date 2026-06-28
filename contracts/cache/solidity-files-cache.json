@@ -747,8 +747,8 @@
       ]
     },
     "/home/topgee/fundflow-crowdfunding-dapp/contracts/contracts/FundFlow.sol": {
-      "lastModificationDate": 1782410079303,
-      "contentHash": "b458a27faaccbb10f453b2469e39058d",
+      "lastModificationDate": 1782673115057,
+      "contentHash": "25644131450ca9b6c7469f294dd47e5e",
       "sourceName": "contracts/FundFlow.sol",
       "solcConfig": {
         "version": "0.8.28",
