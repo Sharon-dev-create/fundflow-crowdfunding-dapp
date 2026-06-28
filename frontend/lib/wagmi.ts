@@ -9,7 +9,7 @@ export const wagmiConfig = getDefaultConfig({
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "demo",
   chains: [sepolia],
   transports: { [sepolia.id]: http(process.env.NEXT_PUBLIC_RPC_URL ?? "https://rpc.ankr.com/eth_sepolia") },
-  ssr: true,
+  ssr: false,
 });
 
 export const queryClient = new QueryClient({
