@@ -316,9 +316,6 @@ struct Campaign {
     uint256 deadline;
     bool completed;
 }
-```
-
----
 
 ## Milestone Structure
 

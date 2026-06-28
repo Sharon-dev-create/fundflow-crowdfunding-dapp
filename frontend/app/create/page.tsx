@@ -200,7 +200,7 @@ export default function CreatePage() {
         style={{ marginBottom: 36 }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-          <div
+          <div 
             style={{
               width: 36,
               height: 36,
