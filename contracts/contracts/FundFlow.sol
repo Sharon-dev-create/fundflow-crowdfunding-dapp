@@ -388,11 +388,12 @@ contract CrowdfundingEscrow is ReentrancyGuard, Ownable, Pausable {
         // > 50% of all contributors must approve
         uint256 threshold = c.contributorCount / 2;
 
-        // ── Effects ───────────────────────────────────────────────────────────
+        // ── Effects ─────────────────────────────────────────────────────────
         m.completed = true;
 
         if (m.approvalVotes > threshold) {
-            m.approved = true;
+            m.approved = true;clear
+            
             uint256 payout = m.amount;
             c.currentMilestoneIndex++;
 
