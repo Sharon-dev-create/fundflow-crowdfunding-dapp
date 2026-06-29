@@ -2,7 +2,6 @@
 require("@nomicfoundation/hardhat-ethers");
 require("@nomicfoundation/hardhat-chai-matchers");
 require("dotenv").config();
-require("dotenv").config();
 
 const PRIVATE_KEY   = process.env.PRIVATE_KEY       || "0x" + "0".repeat(64);
 const SEPOLIA_RPC   = process.env.SEPOLIA_RPC_URL   || "https://rpc.ankr.com/eth_sepolia";
