@@ -12,6 +12,12 @@ import { QueryClient } from "@tanstack/react-query";
 export const wagmiConfig = getDefaultConfig({
   appName: "FundFlow",
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "demo",
+  wallets: [
+    {
+      groupName: "Recommended",
+      wallets: [metaMaskWallet, rainbowWallet, coinbaseWallet, walletConnectWallet],
+    },
+  ],
   chains: [sepolia],
   transports: { [sepolia.id]: http(process.env.NEXT_PUBLIC_RPC_URL ?? "https://rpc.ankr.com/eth_sepolia") },
   ssr: false,
