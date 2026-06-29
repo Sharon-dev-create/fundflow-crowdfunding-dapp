@@ -65,6 +65,10 @@ Crowdfunding platforms frequently create trust issues between project creators a
 
 Common risks include:
 
+ Verify:
+  npx hardhat verify --network sepolia 0xfBce23Ce8133fC7f41E56e8D7E1EeE22c11752FB "0x312b0E7efD0650581b122766A403FF336fa5cf8e" "250"
+  npx hardhat verify --network sepolia 0x4FA9B9d28a48A626919A168C0Ee75B0df4502178 "0x312b0E7efD0650581b122766A403FF336fa5cf8e"
+
 ### For Backers
 
 * Funds can be misused
