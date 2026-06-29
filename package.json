@@ -1,5 +1,1 @@
-{
-	"devDependencies": {
-		"@nomicfoundation/hardhat-verify": "2.1.3"
-	}
-}
+{}
