@@ -5,11 +5,8 @@ import { sepolia } from "viem/chains";
    CONTRACT ADDRESS — replace with your deployed address
 ===================================================== */
 export const CONTRACT_ADDRESS =
-  "0xYOUR_DEPLOYED_CONTRACT_ADDRESS" as const satisfies Address;
+  "0xfBce23Ce8133fC7f41E56e8D7E1EeE22c11752FB" as const satisfies Address;
 
-/* =====================================================
-   ABI — every function used in useContract.ts
-===================================================== */
 export const crowdfundingAbi = [
   // ── Reads ─────────────────────────────────────────
   {
