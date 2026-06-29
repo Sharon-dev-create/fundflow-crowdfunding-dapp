@@ -239,10 +239,6 @@ export const crowdfundingAbi = [
   },
 ] as const;
 
-/* =====================================================
-   PUBLIC CLIENT
-   process.env — NOT import.meta.env (this is Next.js)
-===================================================== */
 export const publicClient = createPublicClient({
   chain: sepolia,
   transport: http(
