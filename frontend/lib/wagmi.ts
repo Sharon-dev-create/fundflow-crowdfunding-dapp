@@ -1,10 +1,14 @@
 "use client";
-import { getDefaultConfig,
+
+import { getDefaultConfig } from "@rainbow-me/rainbowkit";
+import {
   metaMaskWallet,
   coinbaseWallet,
   rainbowWallet,
-  walletConnectWallet
- } from "@rainbow-me/rainbowkit";
+  walletConnectWallet,
+  injectedWallet,
+  braveWallet,
+} from "@rainbow-me/rainbowkit/wallets";
 import { sepolia } from "wagmi/chains";
 import { http } from "wagmi";
 import { QueryClient } from "@tanstack/react-query";
@@ -14,15 +18,32 @@ export const wagmiConfig = getDefaultConfig({
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "demo",
   wallets: [
     {
-      groupName: "Recommended",
-      wallets: [metaMaskWallet, rainbowWallet, coinbaseWallet, walletConnectWallet],
+      groupName: "Popular",
+      wallets: [
+        metaMaskWallet,
+        rainbowWallet,
+        coinbaseWallet,
+        walletConnectWallet,
+        braveWallet,
+        injectedWallet,
+      ],
     },
   ],
   chains: [sepolia],
-  transports: { [sepolia.id]: http(process.env.NEXT_PUBLIC_RPC_URL ?? "https://rpc.ankr.com/eth_sepolia") },
-  ssr: false,
+  transports: {
+    [sepolia.id]: http(
+      process.env.NEXT_PUBLIC_RPC_URL ?? "https://rpc.ankr.com/eth_sepolia"
+    ),
+  },
+  ssr: true,
 });
 
 export const queryClient = new QueryClient({
-  defaultOptions: { queries: { staleTime: 12_000, gcTime: 5 * 60_000, retry: 2 } },
+  defaultOptions: {
+    queries: {
+      staleTime: 12_000,
+      gcTime: 5 * 60_000,
+      retry: 2,
+    },
+  },
 });
