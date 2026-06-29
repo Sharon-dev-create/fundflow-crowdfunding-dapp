@@ -1,5 +1,10 @@
 "use client";
-import { getDefaultConfig } from "@rainbow-me/rainbowkit";
+import { getDefaultConfig,
+  metaMaskWallet,
+  coinbaseWallet,
+  rainbowWallet,
+  walletConnectWallet
+ } from "@rainbow-me/rainbowkit";
 import { sepolia } from "wagmi/chains";
 import { http } from "wagmi";
 import { QueryClient } from "@tanstack/react-query";
