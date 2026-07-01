@@ -239,8 +239,7 @@ export const crowdfundingAbi = [
 export const publicClient = createPublicClient({
   chain: sepolia,
   transport: http(
-    process.env.NEXT_PUBLIC_RPC_URL ?? "SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/QBzpsl7E_1rFjodxHnHfvCll_1QgRqG4
-"
+    process.env.NEXT_PUBLIC_RPC_URL ?? "https://sepolia.drpc.org"
   ),
 });
 
