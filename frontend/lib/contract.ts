@@ -1,9 +1,6 @@
 import { Address, createPublicClient, http } from "viem";
 import { sepolia } from "viem/chains";
 
-/* =====================================================
-   CONTRACT ADDRESS — replace with your deployed address
-===================================================== */
 export const CONTRACT_ADDRESS =
   "0xfBce23Ce8133fC7f41E56e8D7E1EeE22c11752FB" as const satisfies Address;
 
@@ -246,9 +243,7 @@ export const publicClient = createPublicClient({
   ),
 });
 
-/* =====================================================
-   TYPES
-===================================================== */
+
 export enum CampaignStatus {
   Active     = 0,
   Successful = 1,
