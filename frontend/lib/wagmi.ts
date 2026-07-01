@@ -32,7 +32,7 @@ export const wagmiConfig = getDefaultConfig({
   chains: [sepolia],
   transports: {
     [sepolia.id]: http(
-      process.env.NEXT_PUBLIC_RPC_URL ?? "https://rpc.ankr.com/eth_sepolia"
+      process.env.NEXT_PUBLIC_RPC_URL ?? "https://sepolia.drpc.org"
     ),
   },
   ssr: true,

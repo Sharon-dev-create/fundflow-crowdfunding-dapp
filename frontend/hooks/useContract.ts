@@ -109,7 +109,7 @@ export function useCampaigns() {
   const contracts = Array.from({ length: total }, (_, i) => ({
     ...CONTRACT,
     functionName: "getCampaign" as const,
-    args: [BigInt(i)] as const,
+    args: [BigInt(i + 1)] as const,
   }));
 
   const results = useReadContracts({
@@ -123,7 +123,7 @@ export function useCampaigns() {
   const campaigns = (results.data ?? [])
     .map((r, i) =>
       r.status === "success"
-        ? ({ id: BigInt(i), ...(r.result as Campaign) } as CampaignWithId)
+        ? ({ id: BigInt(i + 1), ...(r.result as Campaign) } as CampaignWithId)
         : null,
     )
     .filter((c): c is CampaignWithId => c !== null && C.exists)
